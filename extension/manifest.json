@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "nokey-api Bridge",
+  "version": "0.1.0",
+  "minimum_chrome_version": "120",
+  "description": "本地 Agent 与网页版大模型（豆包/DeepSeek）的免密免 Key 零成本通信代理网关",
+  "permissions": [
+    "tabs",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "sites_config.js",
+        "adapter.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "nokey-api"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

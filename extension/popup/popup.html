@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 320px;
+      margin: 0;
+      padding: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1e1e24;
+      color: #e2e8f0;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #3f3f46;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+    .status-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #71717a;
+    }
+    .status-dot.connected { background: #10b981; }
+    .status-dot.disconnected { background: #ef4444; }
+    .status-dot.connecting { background: #f59e0b; }
+    
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #a1a1aa;
+      margin-bottom: 6px;
+    }
+    .tab-list {
+      max-height: 160px;
+      overflow-y: auto;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      background: #18181b;
+      margin-bottom: 12px;
+    }
+    .tab-item {
+      padding: 8px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #27272a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    .tab-item:last-child { border-bottom: none; }
+    .tab-item:hover { background: #27272a; }
+    .tab-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+    .tab-badge {
+      font-size: 10px;
+      background: #0284c7;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    
+    .binding-box {
+      background: #18181b;
+      border: 1px dashed #38bdf8;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 12px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .binding-box.visible { display: block; }
+    .binding-url {
+      word-break: break-all;
+      color: #bae6fd;
+      margin-top: 4px;
+      font-family: monospace;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      flex: 1;
+      background: #27272a;
+      color: #e2e8f0;
+      border: 1px solid #3f3f46;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { background: #3f3f46; border-color: #52525b; }
+    #btnReconnect { background: #0369a1; border-color: #0284c7; }
+    #btnReconnect:hover { background: #0284c7; }
+    #btnUnbind { background: #991b1b; border-color: #b91c1c; display: none; }
+    #btnUnbind:hover { background: #b91c1c; }
+
+    .message {
+      font-size: 11px;
+      padding: 6px;
+      border-radius: 4px;
+      margin-top: 10px;
+      display: none;
+    }
+    .message.visible { display: block; }
+    .message.success { background: #064e3b; color: #6ee7b7; }
+    .message.error { background: #7f1d1d; color: #fca5a5; }
+    .message.info { background: #14532d; color: #93c5fd; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">nokey-api 🌈</div>
+    <div class="status-container">
+      <div id="statusDot" class="status-dot disconnected"></div>
+      <span id="statusText">未连接 Agent</span>
+    </div>
+  </div>
+
+  <div id="bindingInfo" class="binding-box">
+    <div style="color: #38bdf8; font-weight: bold;">⚓ 当前已锚定 AI 页面：</div>
+    <div id="bindingUrl" class="binding-url">加载中...</div>
+  </div>
+
+  <div id="tabSection">
+    <div class="section-title">选择要绑定的 AI 聊天标签页</div>
+    <div id="tabList" class="tab-list">
+      <!-- 动态加载 -->
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <button id="btnRefresh">🔄 刷新列表</button>
+    <button id="btnUnbind">🔓 解绑页面</button>
+    <button id="btnReconnect">⚡ 重新连接</button>
+  </div>
+
+  <div id="message" class="message"></div>
+</body>
+</html>
