@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "nokey-api Bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minimum_chrome_version": "120",
   "description": "本地 Agent 与网页版大模型（豆包/DeepSeek）的免密免 Key 零成本通信代理网关",
   "permissions": [
