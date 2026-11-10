@@ -80,4 +80,44 @@ globalThis.SITES_CONFIG = {
       return rawText;
     }
   }
+
+  // 3. 深度适配 Google 搜索 AI Mode / Gemini 网页端
+  "google.com": {
+    name: "Google AI Mode",
+    supportedPaths: ["/search", "/ai"],
+    selectors: {
+      // 1. 输入框：Google 极度依赖无障碍标签，这里用 aria-label 或 role 锁定最稳
+      input:   'textarea[aria-label*="Search"], textarea[aria-label*="AI"], textarea[role="combobox"]',
+      
+      // 2. 核心布局面板与内容容器
+      panel:   '#rcnt, #center_col, div[role="main"]',
+      content: 'div[data-async-context], #botstuff, .ULSxyf', 
+      section: 'form[action="/search"], .tsf, div[class*="search-box"]',
+      
+      // 3. 消息块与发送按钮
+      message: 'div[role="region"][aria-label*="AI"], div.ds-markdown, .O9ZgTe',
+      send:    'button[type="submit"], div[role="button"][aria-label*="Send"], .XQ9bCe'
+    },
+    
+    // Google 生成状态判定：当蓝色的“发送”图标变成“停止/旋转加载”图标，或特定容器出现动画类
+    isGenerating: (ctx) => {
+      const stopBtn = ctx.section.querySelector('button[aria-label*="Stop"], [class*="stop-icon"]');
+      const progress = ctx.panel.querySelector('div[role="progressbar"], .loading-indicator');
+      return !!stopBtn || !!progress;
+    },
+    
+    // 提取最新的 AI 生成回答块
+    getMessages: (ctx) => {
+      // 抓取包含 AI 生成结果的卡片或 markdown 渲染容器
+      return [...ctx.panel.querySelectorAll('div[role="region"][aria-label*="AI"], .O9ZgTe')];
+    },
+    
+    // 清洗 Google 的垃圾标签，精准提取纯文本
+    getMessageText: (el) => {
+      const copy = el.cloneNode(true);
+      // 移除 Google 附带的各种“查看来源链接(Citations)”小气泡和点赞小图标
+      copy.querySelectorAll('a, button, [role="button"], svg, .citations-container').forEach(n => n.remove());
+      return copy.innerText.trim();
+    }
+  }
 };
