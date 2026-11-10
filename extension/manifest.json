@@ -10,8 +10,10 @@
     "alarms"
   ],
   "host_permissions": [
+    "https://www.google.com\u002f\u002a",
+    "https://*.google.com\u002f\u002a",
     "<all_urls>"
-  ],
+  ]
   "content_scripts": [
     {
       "matches": [
