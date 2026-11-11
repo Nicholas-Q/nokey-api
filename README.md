@@ -1,14 +1,11 @@
 # nokey-api 🌈
 
-> ⚠️ **当前版本：v0.1.0 (Public Beta / 仅通过纯代码级冒烟测试)**
+> ⚠️ **当前版本：v0.2.0 (Alpha / 已通过 Google 网页端联调实测)**
 >
 > **📢 核心状态声明（必读）：**
-> 1. **仅通过代码级仿真验证**：本项目目前 **仅通过了 Python 纯后端层面的函数与架构级仿真联调**（通过运行 `test_core.py` 验证 100% 闭环流式冒烟测试成功）。
-> 2. **尚未进行真实网页实测**：由于当前大模型厂商网页端的前端组件结构更新频繁，本初始实验版本 **尚未在真实的、线上生产环境的大模型网页（如真实的豆包、DeepSeek 网页端 DOM 布局）中进行实际运行验证**。它代表了一套骨架极其健壮的网络总线和协议引擎，但前端适配器规则仍处于初稿阶段。
-> 3. **后续高频迭代更新**：本项目后续会进行迭代重构，逐步完善和对齐各大主流大模型网页端在真实高频环境下的 DOM 稳定性校验。
->
-> 🤝 **诚邀开源社区共建与实验：**
-> 极其欢迎各位极客、开发者和 AI 爱好者下载本项目进行真实网页环境的测试与实验！如果你在绑定、填表、模拟点击或打字机流式输出阶段遇到了任何页面选择器失效或错位问题：**请不要犹豫，请立即提交 Issue 反馈 Bug，或者直接提交 Pull Request (PR) 修改 `sites_config.js` 的适配字典！** 让我们一起把这套免 Key 代理神器做大做强。
+> 1. **Google 环境联调通过**：本项目目前已在真实的 **Google AI Mode (谷歌搜索 AI 整合页)** 线上生产环境中完成了实际运行验证，打通了上行自动填词发送与下行全文本抓取。
+> 2. **豆包与 DeepSeek 暂未实测**：受限于大模型平台频繁的前端组件更新，本项目针对 **豆包 (doubao.com)** 和 **DeepSeek** 的页面选择器规则目前仅处于初稿阶段，**尚未在真实的线上网页环境中进行实际运行与稳定性验证**。
+> 3. **极客与社区共建**：欢迎开发者下载本项目进行更多真实网页环境的实验。如果你在绑定、填词、模拟点击或文本抓取阶段遇到了页面选择器失效、错位或死锁问题，请提交 Issue 反馈，或直接提交 Pull Request (PR) 修改 `sites_config.js` 的适配字典。
 
 ---
 
@@ -22,17 +19,18 @@
 
 ## ⚙️ 核心技术架构与数据流向原理
 
-*   **解耦式网关协议流**：本地 Agent (如 Cursor) \(\xrightarrow{\text{HTTP POST}}\) 本地 Python 服务器 (`server.py`) \(\xrightarrow{\text{WebSocket}}\) 扩展 Service Worker (`background.js`) \(\xrightarrow{\text{Chrome 核心消息路由}}\) 页面 Content Script (`content.js`) \(\xrightarrow{\text{DOM 自动化操作}}\) 目标 AI 网页端 \(\xrightarrow{\text{增量实时抓取}}\) 原路安全返回 Agent。
-*   **出站长链路保护链 (Outbox Chain)**：插件内置高可靠性的串行事件缓冲管道（基于 Outbox Chain 锁机制）。即便目标浏览器聊天页面意外发生短暂刷新，或者本地 Python 网关重启，当前活跃的生成任务队列也绝不会丢失，支持增量自动补发同步。
-*   **对下 Super Prompt 强力变形引擎**：后端解析器能自动将外部 Agent 发来的多轮复杂历史对话（System、User、Assistant）扁平化组装，并用强力的物理标签（如 `<USER>...</USER>`）进行隔离，最后拼装成一条带有 `[API MODE ACTIVE]` 洗脑指令的超级文本投喂给网页端。这能强行逼迫社交化聊天网页收起废话，像一个冷酷听话的官方 API 节点那样只输出纯净干货。
-*   **对上 Token 消耗计数器伪造**：自动根据网页端吐出的字符长度进行数学估算，并伪造补全标准 OpenAI 响应头中的 `usage` 块（`prompt_tokens`, `completion_tokens`），完美对齐终止符（`finish_reason: "stop"`），彻底解决严格的本地 Agent 框架因核心元数据缺失而频繁抛出的 `KeyError` 阻断异常。
+*   **解耦式网关协议流**：本地 Agent (如 Cursor) ➡️ 本地 Python 服务器 (`server.py`) ➡️ 扩展 Service Worker (`background.js`) ➡️ Chrome 核心消息路由 ➡️ 页面 Content Script (`content.js`) ➡️ DOM 自动填词 ➡️ 模拟原生回车事件 ➡️ 目标 AI 网页端 ➡️ 全网页文本扫描与去噪 ➡️ 静止计数器收网 ➡️ 原路返回 Agent。
+*   **上行时序对齐机制**：在 `content.js` 内部建立异步时序逻辑，确保网页打字渲染和原生 `Enter` 键盘事件流执行完毕后，才开启 `inspect` 检测轮询，避免初始创设帧的早夭误判。
+*   **全网页差值去噪逻辑**：采用全网页平铺式扫描，通过在空间上切除提问区镜像，并针对 Google 页面特定无障碍菜单、系统提示词以及复制反馈字符（如 `Shared0 files`、`Copied to clipboard`）进行特定的过滤和字符串切片清洗，隔离出原生文本回复。
+*   **绝对静止物理计数器**：下行抓取逻辑减少对网页动态思考中组件的依赖。当检测到页面清洗后的文本资产在连续 3 次扫描（约 600ms 窗口期）中保持长度和内容绝对静止、不再发生变化时，便判定生成结束并执行收网交付。
+*   **对上元数据对齐**：根据网页端抓取的字符长度进行数学估算，自动补全标准 OpenAI 响应头中的 `usage` 块（`prompt_tokens`, `completion_tokens`）以及终止符（`finish_reason: "stop"`），避免本地 Agent 框架由于核心元数据缺失而频繁抛出 `KeyError` 阻断异常。
 
 ---
 
-## 🚀 快速开始指南 (本地仿真模拟模式)
+## 🚀 快速开始指南
 
 ### 1. 本地环境依赖配置
-确保你的电脑安装了 Python 3.10+。在项目根目录下，运行以下命令安装轻量级高并发网关依赖：
+确保你的电脑安装了 Python 3.10+。在项目根目录下，运行以下命令安装轻量级网关依赖（注意：请根据实际需求微调或保持本地已通过的库版本）：
 ```bash
 pip install -r requirements.txt
 ```
@@ -42,17 +40,14 @@ pip install -r requirements.txt
 2. 在右上角开启 **"开发者模式" (Developer mode)**。
 3. 点击左上角 **"加载已解压的扩展程序" (Load unpacked)**，选择本项目中的 `extension` 文件夹。
 
-### 3. 运行全链路闭环集成仿真测试
-要亲眼见证本网关的底层网络总线、WebSocket 通信信道以及 SSE 流式解析器在模拟满载下的完美表现：
-1. 打开第一个终端窗口，拉起中央服务网关：
+### 3. 运行全链路联调测试
+1. 保持 Chrome 浏览器在**单窗口独立挂载**（不最小化、不完全被非激活标签页深度休眠）的形式下运行，并打开目标 Google AI 网页。
+2. 点击插件面板（Popup UI），点击对应标签页进行 **⚓ 绑定**。
+3. 在第一个终端窗口中，拉起中央服务网关：
    ```bash
    python server.py
    ```
-2. 打开第二个终端窗口，运行完全体仿真测试脚本：
-   ```bash
-   python test_core.py
-   ```
-你会震撼地看到多轮历史上下文被秒级打包成强隔离标签、精准下发至虚拟通道、并最终在客户端终端里以**极其丝滑的、一个字一个字蹦字的 OpenAI 标准流式打字机效果**完美呈现，并优雅地以 `[DONE]` 标志收尾！
+4. 在第二个终端窗口或你的客户端环境中发起任务调用，验证自动填词、回车发送以及下行文本捕获大闭环。
 
 ---
 
@@ -61,17 +56,18 @@ pip install -r requirements.txt
 nokey-api/
 ├── extension/             # 浏览器插件沙盒
 │   ├── manifest.json      # 插件元数据与全网匹配授权规范 (Manifest V3)
-│   ├── sites_config.js    # 核心解耦：全站多模型 DOM 选择器字典与安全风控噪音清洗器
-│   ├── adapter.js         # 通用动态网页自适应适配引擎路由总线
-│   ├── content.js         # 异步任务状态机核心调度与周期巡检脚本
-│   ├── background.js      # 串行 Outbox 队列保护、Alarms 定时重连与 WS 连接管理器
-│   └── popup/             # 控制面板 Popup UI 界面与极客风调试终端
-├── server.py              # 本地 FastAPI 中央网关 & OpenAI 协议完美伪装模拟器
-├── test_core.py           # 纯后端函数级端到端仿真集成冒烟测试工具
-├── requirements.txt       # 本地 Python 环境依赖库声明
-└── .gitignore             # 标准的 Git 仓库上传忽略屏蔽配置文件
+│   ├── sites_config.js    # 全站多模型 DOM 选择器、防越界切片与特定去噪清洗矩阵
+│   ├── adapter.js         # 通用动态网页自适应适配引擎：支持物理级键盘发射总线
+│   ├── content.js         # 异步任务状态机调度器：内置静止计数器与时序对齐逻辑
+│   ├── background.js      # 串行 Outbox 队列保护、长效长连接 WS 管理器与状态查询矩阵
+│   └── popup/             # 控制面板 Popup UI 界面与调试终端
+├── server.py              # 本地 FastAPI 中央网关：内嵌解包防御与空资产保底机制
+├── test_core.py           # 后端函数级仿真集成测试工具
+├── requirements.txt       # 本地 Python 环境依赖库声明文件
+└── .gitignore             # 标准的 Git 仓库上传忽略配置文件
 ```
+
 ## 👥 作者与开源许可证 (Author & License)
 
-*   **项目发起与维护人 (Author)**: [@Nicholas-Q](https://github.com/Nicholas-Q) 🌈
+*   **项目发起与维护人 (Author)**: [@Nicholas-Q](https://github.com) 🌈
 *   **开源许可证 (License)**: 本项目基于 **[MIT License](LICENSE)** 协议开源。你可以完全自由地分发、魔改、闭源或商用此工具，但请务必保留原作者的版权声明与免责条款。
