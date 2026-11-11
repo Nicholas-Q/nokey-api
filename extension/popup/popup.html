@@ -4,161 +4,87 @@
   <meta charset="utf-8">
   <style>
     body {
-      width: 320px;
-      margin: 0;
-      padding: 14px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #1e1e24;
-      color: #e2e8f0;
+      width: 320px; margin: 0; padding: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #09090b; color: #f4f4f5;
     }
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #3f3f46;
-      padding-bottom: 10px;
-      margin-bottom: 12px;
-    }
-    .title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #38bdf8;
-    }
-    .status-container {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #71717a;
-    }
-    .status-dot.connected { background: #10b981; }
-    .status-dot.disconnected { background: #ef4444; }
-    .status-dot.connecting { background: #f59e0b; }
-    
-    .section-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #a1a1aa;
-      margin-bottom: 6px;
-    }
-    .tab-list {
-      max-height: 160px;
-      overflow-y: auto;
-      border: 1px solid #3f3f46;
-      border-radius: 6px;
-      background: #18181b;
-      margin-bottom: 12px;
-    }
-    .tab-item {
-      padding: 8px 12px;
-      font-size: 12px;
-      cursor: pointer;
-      border-bottom: 1px solid #27272a;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: background 0.2s;
-    }
+    .header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid #27272a; }
+    .title { font-size: 14px; font-weight: 600; color: #fafafa; }
+    .status-group { display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #71717a; transition: background 0.3s; }
+    .status-dot.connected { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .status-dot.disconnected { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+    .status-text { font-size: 12px; color: #a1a1aa; }
+    .section { margin-top: 12px; }
+    .section-title { font-size: 11px; text-transform: uppercase; color: #71717a; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .binding-box { background: #18181b; border: 1px solid #27272a; border-radius: 6px; padding: 8px; font-size: 12px; display: none; }
+    .binding-url { word-break: break-all; color: #38bdf8; font-family: monospace; font-size: 11px; }
+    .tab-list { max-height: 110px; overflow-y: auto; background: #18181b; border: 1px solid #27272a; border-radius: 6px; }
+    .tab-item { padding: 8px; font-size: 12px; border-bottom: 1px solid #27272a; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 4px; }
     .tab-item:last-child { border-bottom: none; }
     .tab-item:hover { background: #27272a; }
-    .tab-title {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 200px;
-    }
-    .tab-badge {
-      font-size: 10px;
-      background: #0284c7;
-      color: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
+    .tab-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; color: #e4e4e7; }
+    .tab-badge { background: #0369a1; color: #e0f2fe; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .btn { background: #27272a; color: #fafafa; border: 1px solid #3f3f46; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; }
+    .btn:hover { background: #3f3f46; border-color: #52525b; }
+    .btn-danger { background: #7f1d1d; border-color: #991b1b; color: #fef2f2; }
+    .btn-danger:hover { background: #991b1b; }
+    .actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 12px; }
     
-    .binding-box {
-      background: #18181b;
-      border: 1px dashed #38bdf8;
-      border-radius: 6px;
-      padding: 10px;
-      font-size: 12px;
-      margin-bottom: 12px;
-      display: none;
+    /* ── 🎯 开发者硬核 LOGS 区域组件 ── */
+    .debug-container { margin-top: 12px; border-top: 1px dashed #27272a; padding-top: 10px; }
+    .debug-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .debug-console { 
+      background: #000; border: 1px solid #27272a; border-radius: 4px; 
+      height: 140px; overflow-y: auto; padding: 6px;
+      font-family: "Consolas", "Courier New", monospace; font-size: 10px; line-height: 1.4;
     }
-    .binding-box.visible { display: block; }
-    .binding-url {
-      word-break: break-all;
-      color: #bae6fd;
-      margin-top: 4px;
-      font-family: monospace;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 8px;
-    }
-    button {
-      flex: 1;
-      background: #27272a;
-      color: #e2e8f0;
-      border: 1px solid #3f3f46;
-      padding: 6px 12px;
-      font-size: 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    button:hover { background: #3f3f46; border-color: #52525b; }
-    #btnReconnect { background: #0369a1; border-color: #0284c7; }
-    #btnReconnect:hover { background: #0284c7; }
-    #btnUnbind { background: #991b1b; border-color: #b91c1c; display: none; }
-    #btnUnbind:hover { background: #b91c1c; }
-
-    .message {
-      font-size: 11px;
-      padding: 6px;
-      border-radius: 4px;
-      margin-top: 10px;
-      display: none;
-    }
-    .message.visible { display: block; }
-    .message.success { background: #064e3b; color: #6ee7b7; }
-    .message.error { background: #7f1d1d; color: #fca5a5; }
-    .message.info { background: #14532d; color: #93c5fd; }
+    .log-line { margin-bottom: 4px; word-break: break-all; border-bottom: 1px solid #111; padding-bottom: 2px; }
+    .log-time { color: #52525b; margin-right: 4px; }
+    .log-tag { font-weight: bold; padding: 1px 3px; border-radius: 2px; margin-right: 4px; font-size: 9px; }
+    .tag-server { background: #1e3a8a; color: #60a5fa; }
+    .tag-page { background: #312e81; color: #c084fc; }
+    .tag-extension { background: #365314; color: #4ade80; }
+    .tag-error { background: #7f1d1d; color: #f87171; }
+    .log-body { color: #d4d4d8; }
   </style>
 </head>
 <body>
+
   <div class="header">
-    <div class="title">nokey-api 🌈</div>
-    <div class="status-container">
+    <div class="title">nokey-api Bridge</div>
+    <div class="status-group">
       <div id="statusDot" class="status-dot disconnected"></div>
-      <span id="statusText">未连接 Agent</span>
+      <div id="statusText" class="status-text">未连接 Agent</div>
     </div>
   </div>
 
-  <div id="bindingInfo" class="binding-box">
-    <div style="color: #38bdf8; font-weight: bold;">⚓ 当前已锚定 AI 页面：</div>
-    <div id="bindingUrl" class="binding-url">加载中...</div>
-  </div>
-
-  <div id="tabSection">
-    <div class="section-title">选择要绑定的 AI 聊天标签页</div>
-    <div id="tabList" class="tab-list">
-      <!-- 动态加载 -->
+  <div class="section" id="bindingInfo" style="display:none;">
+    <div class="section-title">当前已安全锁定锚定目标</div>
+    <div class="binding-box">
+      <div class="binding-url" id="bindingUrl">None</div>
     </div>
   </div>
 
-  <div class="btn-group">
-    <button id="btnRefresh">🔄 刷新列表</button>
-    <button id="btnUnbind">🔓 解绑页面</button>
-    <button id="btnReconnect">⚡ 重新连接</button>
+  <div class="section" id="tabSection">
+    <div class="section-title">检测到在线的大模型活跃标签页</div>
+    <div class="tab-list" id="tabList"></div>
   </div>
 
-  <div id="message" class="message"></div>
+  <div class="actions">
+    <button class="btn" id="btnRefresh">🔄 刷新标签</button>
+    <button class="btn btn-danger" id="btnUnbind" style="display:none;">🔓 物理脱开</button>
+    <button class="btn" id="btnReconnect">⚡ 重新连接</button>
+  </div>
+
+  <!-- ── 🎯 调试仪表盘入口 ── -->
+  <div class="debug-container">
+    <div class="debug-header">
+      <div class="section-title" style="margin-bottom:0;">💻 全链路总线实时调试日志</div>
+      <button class="btn" id="btnClearLogs" style="padding:2px 6px; font-size:9px; height:auto;">清空</button>
+    </div>
+    <div class="debug-console" id="debugConsole"></div>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>
